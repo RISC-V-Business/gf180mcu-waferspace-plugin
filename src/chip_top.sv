@@ -269,7 +269,7 @@ module chip_top #(
     
     // wafer.space logo - can be removed if desired
     (* keep *) gf180mcu_ws_ip__logo wafer_space_logo ();
-
+    
 endmodule
 
 `default_nettype wire

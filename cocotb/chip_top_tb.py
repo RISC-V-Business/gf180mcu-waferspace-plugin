@@ -29,7 +29,7 @@ async def enable_power(dut):
     dut.VDD.value = 1
     dut.VSS.value = 0
 
-async def start_clock(clock, freq=50):
+async def start_clock(clock, freq=25):
     """Start the clock @ freq MHz"""
     c = Clock(clock, 1 / freq * 1000, "ns")
     cocotb.start_soon(c.start())
@@ -56,8 +56,8 @@ async def start_up(dut):
 
 
 @cocotb.test()
-async def test_counter(dut):
-    """Run the counter test"""
+async def test_litex_harness(dut):
+    """Check reset and the fixed Wafer.Space-to-LiteX pad contract."""
 
     # Create a logger for this testbench
     logger = logging.getLogger("my_testbench")
@@ -69,22 +69,16 @@ async def test_counter(dut):
 
     logger.info("Running the test...")
 
-    # Wait for some time...
-    await ClockCycles(dut.clk_PAD, 10)
+    await ClockCycles(dut.clk_PAD, 20)
 
-    # Please note that cocotb cannpt write to individual bits of a vector.
-    # If you need to write to individual bits, you can separate e.g. the 
-    # bidir_PAD vector into individual bits through a tb wrapper.
-    # Even better, use individual pad names for each bit.
+    # QSPI CS/CLK, UART TX and the SPI master outputs are always driven.
+    output_enable = dut.bidir_CORE2PAD_OE.value
+    assert output_enable.is_resolvable
+    required_outputs = sum(1 << bit for bit in (4, 5, 6, 8, 9, 10))
+    assert int(output_enable) & required_outputs == required_outputs
 
-    # Start the counter by setting all inputs to 1
-    dut.input_PAD.value = -1
-
-    # Wait for a number of clock cycles
-    await ClockCycles(dut.clk_PAD, 100)
-
-    # Check the end result of the counter
-    assert dut.bidir_PAD.value == 100 - 1
+    output_value = dut.bidir_CORE2PAD.value
+    assert output_value.is_resolvable
 
     logger.info("Done!")
 
@@ -114,6 +108,8 @@ def chip_top_runner():
 
         defines.update({"FUNCTIONAL": True, "USE_POWER_PINS": True})
     else:
+        sources.append(proj_path / "../src/generated/litex_soc.v")
+        sources.append(proj_path / "../src/generated/gf180_sram_wrapper.v")
         sources.append(proj_path / "../src/chip_top.sv")
         sources.append(proj_path / "../src/chip_core.sv")
 
@@ -158,7 +154,7 @@ def chip_top_runner():
 
     runner.test(
         hdl_toplevel=hdl_toplevel,
-        test_module="chip_top_tb,",
+        test_module="chip_top_tb",
         plusargs=plusargs,
         waves=True,
     )

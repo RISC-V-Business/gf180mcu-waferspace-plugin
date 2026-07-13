@@ -30,8 +30,13 @@ meta:
 
 DESIGN_NAME: chip_top
 VERILOG_FILES:
+- dir::../src/generated/litex_soc.v
+- dir::../src/generated/gf180_sram_wrapper.v
 - dir::../src/chip_top.sv
 - dir::../src/chip_core.sv
+
+VERILOG_INCLUDE_DIRS:
+  - dir::../src
 
 # Enable plugin for better SystemVerilog support
 # USE_SLANG: True
