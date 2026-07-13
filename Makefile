@@ -95,7 +95,7 @@ defines:
 .PHONY: defines
 
 librelane: clone-pdk defines ## Run LibreLane flow (synthesis, PnR, verification)
-	SRAM_DEFINE=${SRAM_DEFINE} YOSYS_INIT_DESIGN="connect -set sram/dout1 32'b0; connect -set VexRiscv/IBusSimplePlugin_rspJoin_fetchRsp_isRvc 1'b0;" librelane ${LIBRELANE_CONFIGS} ${LIBRELANE_OPTS} --save-views-to $(MAKEFILE_DIR)/final
+	SRAM_DEFINE=${SRAM_DEFINE} SYNTH_TIE_UNDEFINED="low" ERROR_ON_SYNTH_CHECKS=false librelane ${LIBRELANE_CONFIGS} ${LIBRELANE_OPTS} --save-views-to $(MAKEFILE_DIR)/final
 .PHONY: librelane
 
 

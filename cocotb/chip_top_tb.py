@@ -80,6 +80,12 @@ async def test_litex_harness(dut):
     output_value = dut.bidir_CORE2PAD.value
     assert output_value.is_resolvable
 
+    # The physical GF180 SRAM is single-port.  Its retained Caravel port-1
+    # compatibility output must be a deterministic zero, never X/Z.
+    sram_port1 = dut.i_chip_core.i_litex_soc.sram.dout1.value
+    assert sram_port1.is_resolvable
+    assert int(sram_port1) == 0
+
     logger.info("Done!")
 
 
